@@ -22,6 +22,7 @@ namespace WebApiKata.IoC
             // Transients
             serviceRegistry.Register<IUserRepository, UserRepository>();
             serviceRegistry.Register<IProductRepository, ProductRepository>();
+            serviceRegistry.Register<ITrolleyRepository, TrolleyRepository>();
         }
 
         private static void RegisterAutoMapper(IServiceRegistry serviceRegistry)
