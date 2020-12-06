@@ -29,9 +29,13 @@ namespace WebApiKata.Services
 
         public async Task<decimal> CalculateTrolley(TrolleyInfo trolleyInfo)
         {
-            if (TrolleyInfoOrItsComponentsIsNull(trolleyInfo))
+            if(trolleyInfo == null)
             {
                 return 0;
+            }
+            if (TrolleyInfoPropertiesAreNull(trolleyInfo))
+            {
+                throw new ArgumentException("Products, Quantities and Specials properties cannot be null.");
             }
             string fullApiUrl = GetFullApiUrl(ExternalApiPathName.CalculateTrolley);
             var requestContent = new StringContent(_serializer.Serialize(trolleyInfo));
@@ -49,10 +53,9 @@ namespace WebApiKata.Services
             return result;
         }
 
-        private bool TrolleyInfoOrItsComponentsIsNull(TrolleyInfo trolleyInfo)
+        private bool TrolleyInfoPropertiesAreNull(TrolleyInfo trolleyInfo)
         {
-            return  trolleyInfo == null ||
-                    trolleyInfo.Products == null ||
+            return  trolleyInfo.Products == null ||
                     trolleyInfo.Quantities == null ||
                     trolleyInfo.Specials == null;
         }

@@ -1,11 +1,10 @@
 ﻿using WebApiKata.Services.Extensions;
 using WebApiKata.Interfaces;
 using WebApiKata.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using System;
 
 namespace WebApiKata.Services
 {
@@ -22,6 +21,10 @@ namespace WebApiKata.Services
             {
                 return 0;
             }
+            if(TrolleyInfoPropertiesAreNull(trolleyInfo))
+            {
+                throw new ArgumentException("Products, Quantities and Specials properties cannot be null.");
+            }
 
             var maxPrice = GetMaxPrice(trolleyInfo);
 
@@ -37,6 +40,10 @@ namespace WebApiKata.Services
             var minPrice = maxPrice;
             var i = 0;
             var minPriceUpdated = false;
+            if(!specials.Any())
+            {
+                return minPrice;
+            }
             while (!minPriceUpdated)
             {
                 minPriceUpdated = false;
@@ -51,6 +58,13 @@ namespace WebApiKata.Services
             return minPrice;
         }
 
+        private bool TrolleyInfoPropertiesAreNull(TrolleyInfo trolleyInfo)
+        {
+            return trolleyInfo.Products == null ||
+                    trolleyInfo.Quantities == null ||
+                    trolleyInfo.Specials == null;
+        }
+
         private void GetMinPrice(Dictionary<string,decimal> productPriceMap,  decimal maxPrice, List<TrolleySpecial> specials, Dictionary<string, int> shoppedProducts, ref decimal minPrice, int i, ref bool minPriceUpdated, int j)
         {
             var specialCounts = new List<int>();
@@ -60,7 +74,7 @@ namespace WebApiKata.Services
             {
                 int oldValue = specialCounts[j];
                 specialCounts[j] = oldValue + k;
-                if (IsApplicable(shoppedProducts, specials, specialCounts))
+                if (SpecialIsApplicable(shoppedProducts, specials, specialCounts))
                 {
                     var priceForSpecials = GetPriceForSpecials(specials, specialCounts);
                     if (maxPrice > priceForSpecials)
@@ -83,7 +97,7 @@ namespace WebApiKata.Services
             }
         }
 
-        private bool IsApplicable(Dictionary<string, int> shoppedProducts, List<TrolleySpecial> specials, List<int> specialCounts)
+        private bool SpecialIsApplicable(Dictionary<string, int> shoppedProducts, List<TrolleySpecial> specials, List<int> specialCounts)
         {
             foreach (KeyValuePair<string, int> entry in shoppedProducts)
             {

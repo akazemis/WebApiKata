@@ -7,6 +7,8 @@ using RichardSzalay.MockHttp;
 using System.Collections.Generic;
 using System.Net.Http;
 using Xunit;
+using System;
+using System.Threading.Tasks;
 
 namespace WebApiKata.Services.Tests
 {
@@ -46,17 +48,18 @@ namespace WebApiKata.Services.Tests
 
         [Theory]
         [MemberData(nameof(GetTrolleyInfoWithNullProperty))]
-        public async void CalculateTrolley_WhenTrolleyInfoPropertyIsNull_ReturnsZero(TrolleyInfo trolleyInfo)
+        public void CalculateTrolley_WhenTrolleyInfoPropertyIsNull_ReturnsZero(TrolleyInfo trolleyInfo)
         {
             // Arrange
             var sutFactory = new SutTrolleyCalculatorFactory();
             var sutTrolleyCalculator = sutFactory.Create();
 
             // Act
-            var result = await sutTrolleyCalculator.CalculateTrolley(trolleyInfo);
+            Func<Task> action = async () => await sutTrolleyCalculator.CalculateTrolley(trolleyInfo);
 
             // Assert
-            result.Should().Be(0);
+            action.Should().ThrowExactlyAsync<ArgumentException>()
+                  .WithMessage("Products, Quantities and Specials properties cannot be null.");
         }
 
         public static IEnumerable<object[]> GetTrolleyInfoWithNullProperty()
