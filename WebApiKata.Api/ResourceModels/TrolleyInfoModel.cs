@@ -19,14 +19,14 @@ namespace WebApiKata.Api.ResourceModels
     {
         public string Name { get; set; }
 
-        public double Price { get; set; }
+        public decimal Price { get; set; }
     }
 
     public class TrolleySpecialModel
     {
         public List<TrolleyQuantityModel> Quantities { get; set; }
 
-        public double Total { get; set; }
+        public decimal Total { get; set; }
     }
 
     public class TrolleyQuantityModel

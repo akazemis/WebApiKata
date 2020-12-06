@@ -126,6 +126,33 @@ namespace WebApiKata.Services.Tests
                 // Expected total
                 24
             };
+
+            yield return new object[]
+            {
+                 // Input trolleyInfo
+                 new TrolleyInfo()
+                 {
+                     Products = new List<TrolleyProduct>(){ new TrolleyProduct() { Name = productA, Price = 0.1234567890123m } },
+                     Quantities = new List<TrolleyQuantity>() { new TrolleyQuantity() { Name = productA, Quantity = 8 } },
+                     Specials = new List<TrolleySpecial>()
+                     {
+                         new TrolleySpecial()
+                         {
+                             Quantities = new List<TrolleyQuantity>()
+                             {
+                                 new TrolleyQuantity()
+                                 {
+                                     Name = productA,
+                                     Quantity = 6
+                                 }
+                             },
+                             Total =  0.555666777999888m
+                         }
+                     }
+                 },
+                 // Expected total
+                 0.802580356024488m
+            };
         }
     }
 }
