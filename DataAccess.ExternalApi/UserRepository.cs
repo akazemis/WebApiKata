@@ -25,7 +25,7 @@ namespace DataAccess.ExternalApi
         public async Task<User> GetUser()
         {
             var token = _configProvider.GetConfigValue(ConfigKeys.Token);
-            return new User() { Name = "test", Token = token };
+            return new User() { Name = "Arvin Kardon", Token = token };
         }
     }
 }
