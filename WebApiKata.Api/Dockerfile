@@ -7,7 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["WebApiKata/WebApiKata.Api.csproj", "WebApiKata.Api/"]
+COPY ["WebApiKata.Api/WebApiKata.Api.csproj", "WebApiKata.Api/"]
 RUN dotnet restore "WebApiKata.Api/WebApiKata.Api.csproj"
 COPY . .
 WORKDIR "/src/WebApiKata.Api"
