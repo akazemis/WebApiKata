@@ -10,7 +10,7 @@ http://webapikata.australiaeast.azurecontainer.io/api/user
 ### Exercise 2
 Get Sorted Products:
 
-http://webapikata2.australiaeast.azurecontainer.io/api/sort?sortOption={sortOption}   
+http://webapikata.australiaeast.azurecontainer.io/api/sort?sortOption={sortOption}   
 sortOption possible values : Low, High, Ascending, Descending, Recommended
 
 
