@@ -1,6 +1,5 @@
 ﻿using AutoMapper;
 using DataAccess.Models;
-using System.Collections.Generic;
 using WebApiKata.ResourceModels;
 
 namespace WebApiKata.ModelMapping
@@ -10,10 +9,13 @@ namespace WebApiKata.ModelMapping
         public MappingProfile()
         {
             AllowNullCollections = true;
-
             CreateMap<User, UserModel>();
             CreateMap<Product, ProductModel>();
+
             CreateMap<TrolleyInfoModel, TrolleyInfo>();
+            CreateMap<TrolleyProductModel, TrolleyProduct>();
+            CreateMap<TrolleyQuantityModel, TrolleyQuantity>();
+            CreateMap<TrolleySpecialModel, TrolleySpecial>();
         }
     }
 }
