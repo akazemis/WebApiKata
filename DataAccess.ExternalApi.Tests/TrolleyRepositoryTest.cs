@@ -63,15 +63,15 @@ namespace DataAccess.ExternalApi.Tests
         {
             yield return new object[]
             {
-                new TrolleyInfo(){ Products = null, Quantities = new List<TrolleyInfo.TrolleyProduct>(), Specials = new List<TrolleyInfo.TrolleySpecial>() }
+                new TrolleyInfo(){ Products = null, Quantities = new List<TrolleyQuantity>(), Specials = new List<TrolleySpecial>() }
             };
             yield return new object[]
             {
-                new TrolleyInfo(){ Products = new List<TrolleyInfo.TrolleyProduct>(), Quantities = null, Specials = new List<TrolleyInfo.TrolleySpecial>() }
+                new TrolleyInfo(){ Products = new List<TrolleyProduct>(), Quantities = null, Specials = new List<TrolleySpecial>() }
             };
             yield return new object[]
             {
-                new TrolleyInfo(){ Products = new List<TrolleyInfo.TrolleyProduct>(), Quantities = new List<TrolleyInfo.TrolleyProduct>(), Specials = null }
+                new TrolleyInfo(){ Products = new List<TrolleyProduct>(), Quantities = new List<TrolleyQuantity>(), Specials = null }
             };
             yield return new object[]
             {
@@ -121,12 +121,13 @@ namespace DataAccess.ExternalApi.Tests
                     .Returns(token);
 
                 var apiRequestUrl = $"{apiUrl}?token={token}";
+                var jsonMimeType = "application/json";
 
                 MockMessageHandler
                     .When(HttpMethod.Post, apiRequestUrl)
                     .WithContent(JsonConvert.SerializeObject(trolleyInfo))
-                    .WithHeaders("Content-Type", "application/json")
-                    .Respond("application/json", responseHttpContent);
+                    .WithHeaders("Content-Type", jsonMimeType)
+                    .Respond(jsonMimeType, responseHttpContent);
             }
         }
     }
