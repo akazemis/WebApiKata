@@ -33,23 +33,25 @@ namespace WebApiKata.Services
                 return 0;
             }
 
-            var specials = GetApplicableSpecials(trolleyInfo, maxPrice);
+            var applicableSpecials = GetApplicableSpecials(trolleyInfo, maxPrice);
             var shoppedProducts = GetShoppedProducts(trolleyInfo);
             var priceMap = GetProductPriceMap(trolleyInfo);
+
+
+            if(!applicableSpecials.Any())
+            {
+                return maxPrice;
+            }
 
             var minPrice = maxPrice;
             var i = 0;
             var minPriceUpdated = false;
-            if(!specials.Any())
-            {
-                return minPrice;
-            }
             while (!minPriceUpdated)
             {
                 minPriceUpdated = false;
-                for (var j = 0; j < specials.Count; ++j)
+                for (var j = 0; j < applicableSpecials.Count; ++j)
                 {
-                    GetMinPrice(priceMap, maxPrice, specials, shoppedProducts, ref minPrice, i, ref minPriceUpdated, j);
+                    GetMinPrice(priceMap, maxPrice, applicableSpecials, shoppedProducts, ref minPrice, i, ref minPriceUpdated, j);
                 }
 
                 i++;
