@@ -3,8 +3,10 @@ using DataAccess.Interfaces;
 using DataAccess.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
+using WebApiKata.Exceptions;
 using WebApiKata.ResourceModels;
 
 namespace WebApiKata.Controllers
@@ -29,6 +31,10 @@ namespace WebApiKata.Controllers
         [HttpPost]
         public async Task<double> CalculateTrolleyTotal([FromBody] TrolleyInfoModel trolleyInfoModel)
         {
+            if(trolleyInfoModel == null)
+            {
+                throw new BadApiRequestException($"{nameof(trolleyInfoModel)} is required.");
+            }
             var trolleyInfo = _mapper.Map<TrolleyInfoModel, TrolleyInfo>(trolleyInfoModel);
             var total = await _trolleyRepository.CalculateTrolley(trolleyInfo);
             return total;

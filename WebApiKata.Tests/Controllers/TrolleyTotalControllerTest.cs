@@ -4,8 +4,10 @@ using DataAccess.Models;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System;
 using System.Threading.Tasks;
 using WebApiKata.Controllers;
+using WebApiKata.Exceptions;
 using WebApiKata.ResourceModels;
 using Xunit;
 
@@ -37,6 +39,24 @@ namespace WebApiKata.Tests.Controllers
 
             // Assert
             result.Should().Be(valueReturnedFromRepository);
+        }
+
+        [Fact]
+        public void CalculateTrolleyTotal_WhenInputIsNull_ThrowsBadRequestException()
+        {
+            // Arrange
+            var sutFactory = new SutTrolleyTotalControllerFactory();
+            TrolleyInfoModel trolleyInfoModel = null;
+
+            var sutTrolleyTotalController = sutFactory.Create();
+
+            // Act
+            Func<Task> action= async () => await sutTrolleyTotalController.CalculateTrolleyTotal(trolleyInfoModel);
+
+            // Assert
+            action.Should()
+                  .ThrowExactly<BadApiRequestException>()
+                  .WithMessage("trolleyInfoModel is required.");
 
         }
 
