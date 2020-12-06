@@ -14,15 +14,15 @@ namespace WebApiKata.Api.Controllers
     {
         private readonly ILogger<UserController> _logger;
         private readonly IMapper _mapper;
-        private readonly IUserRepository _userRepository;
+        private readonly IUserService _userService;
 
         public UserController(ILogger<UserController> logger,
                               IMapper mapper,
-                              IUserRepository userRepository)
+                              IUserService userService)
         {
             _logger = logger;
             _mapper = mapper;
-            _userRepository = userRepository;
+            _userService = userService;
         }
 
         /// <summary>
@@ -32,7 +32,7 @@ namespace WebApiKata.Api.Controllers
         [HttpGet]
         public async Task<UserModel> Get()
         {
-            var user = await _userRepository.GetUser();
+            var user = await _userService.GetUser();
             var userModel = _mapper.Map<User, UserModel>(user);
             return userModel;
         }

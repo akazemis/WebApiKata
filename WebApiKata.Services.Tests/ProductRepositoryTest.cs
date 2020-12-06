@@ -10,20 +10,20 @@ using Xunit;
 
 namespace WebApiKata.Services.Tests
 {
-    public class ProductRepositoryTest
+    public class ProductServiceTest
     {
         [Theory]
         [MemberData(nameof(GetSortByNameAscendingInputAndExpectedOutputList))]
         public async void GetSortedProducts_WhenSortAscending_SortsByProductNameAscending(List<Product> externalApiResult, List<Product> expectedSortedResult)
         {
             // Arrange
-            var sutFactory = new SutProductRepositoryFactory();
+            var sutFactory = new SutProductServiceFactory();
             sutFactory.SetupGetProductsApiResult(externalApiResult);
 
-            var sutProductRepository = sutFactory.Create();
+            var sutProductService = sutFactory.Create();
 
             // Act
-            var result = await sutProductRepository.GetSortedProducts(SortType.Ascending);
+            var result = await sutProductService.GetSortedProducts(SortType.Ascending);
 
             // Assert
             result.Should().BeEquivalentTo(expectedSortedResult, options => options.WithStrictOrdering());
@@ -34,13 +34,13 @@ namespace WebApiKata.Services.Tests
         public async void GetSortedProducts_WhenSortDescending_SortsByProductNameDescending(List<Product> externalApiResult, List<Product> expectedSortedResult)
         {
             // Arrange
-            var sutFactory = new SutProductRepositoryFactory();
+            var sutFactory = new SutProductServiceFactory();
             sutFactory.SetupGetProductsApiResult(externalApiResult);
 
-            var sutProductRepository = sutFactory.Create();
+            var sutProductService = sutFactory.Create();
 
             // Act
-            var result = await sutProductRepository.GetSortedProducts(SortType.Descending);
+            var result = await sutProductService.GetSortedProducts(SortType.Descending);
 
             // Assert
             result.Should().BeEquivalentTo(expectedSortedResult, options => options.WithStrictOrdering());
@@ -51,13 +51,13 @@ namespace WebApiKata.Services.Tests
         public async void GetSortedProducts_WhenSortByLow_SortsByPriceAscending(List<Product> externalApiResult, List<Product> expectedSortedResult)
         {
             // Arrange
-            var sutFactory = new SutProductRepositoryFactory();
+            var sutFactory = new SutProductServiceFactory();
             sutFactory.SetupGetProductsApiResult(externalApiResult);
 
-            var sutProductRepository = sutFactory.Create();
+            var sutProductService = sutFactory.Create();
 
             // Act
-            var result = await sutProductRepository.GetSortedProducts(SortType.Low);
+            var result = await sutProductService.GetSortedProducts(SortType.Low);
 
             // Assert
             result.Should().BeEquivalentTo(expectedSortedResult, options => options.WithStrictOrdering());
@@ -68,13 +68,13 @@ namespace WebApiKata.Services.Tests
         public async void GetSortedProducts_WhenSortByHigh_SortsByPriceDescending(List<Product> externalApiResult, List<Product> expectedSortedResult)
         {
             // Arrange
-            var sutFactory = new SutProductRepositoryFactory();
+            var sutFactory = new SutProductServiceFactory();
             sutFactory.SetupGetProductsApiResult(externalApiResult);
 
-            var sutProductRepository = sutFactory.Create();
+            var sutProductService = sutFactory.Create();
 
             // Act
-            var result = await sutProductRepository.GetSortedProducts(SortType.High);
+            var result = await sutProductService.GetSortedProducts(SortType.High);
 
             // Assert
             result.Should().BeEquivalentTo(expectedSortedResult, options => options.WithStrictOrdering());
@@ -85,14 +85,14 @@ namespace WebApiKata.Services.Tests
         public async void GetSortedProducts_WhenSortByRecommended_SortsByPopularityDescending(List<Product> externalApiResult, List<ShopperHistory> shopperHistoryList, List<Product> expectedSortedResult)
         {
             // Arrange
-            var sutFactory = new SutProductRepositoryFactory();
+            var sutFactory = new SutProductServiceFactory();
             sutFactory.SetupGetProductsApiResult(externalApiResult);
             sutFactory.SetupGetGetShopperHistoryApiResult(shopperHistoryList);
 
-            var sutProductRepository = sutFactory.Create();
+            var sutProductService = sutFactory.Create();
 
             // Act
-            var result = await sutProductRepository.GetSortedProducts(SortType.Recommended);
+            var result = await sutProductService.GetSortedProducts(SortType.Recommended);
 
             // Assert
             result.Should().BeEquivalentTo(expectedSortedResult, options => options.WithStrictOrdering());
@@ -444,7 +444,7 @@ namespace WebApiKata.Services.Tests
             };
         }
 
-        class SutProductRepositoryFactory
+        class SutProductServiceFactory
         {
             Mock<IHttpClientFactory> MockHttpClientFactory { get; set; } = new Mock<IHttpClientFactory>();
             MockHttpMessageHandler MockMessageHandler { get; set; } = new MockHttpMessageHandler();
@@ -452,14 +452,14 @@ namespace WebApiKata.Services.Tests
             Mock<IConfigProvider> MockConfigProvider { get; set; } = new Mock<IConfigProvider>();
             Mock<ISerializer> MockSerializer { get; set; } = new Mock<ISerializer>();
 
-            public ProductRepository Create()
+            public ProductService Create()
             {
                 var httpClient = new HttpClient(MockMessageHandler);
                 MockHttpClientFactory
                     .Setup(o => o.CreateClient(It.IsAny<string>()))
                     .Returns(httpClient);
 
-                return new ProductRepository(MockHttpClientFactory.Object,
+                return new ProductService(MockHttpClientFactory.Object,
                                              MockExternalApiPathProvider.Object,
                                              MockConfigProvider.Object,
                                              MockSerializer.Object);

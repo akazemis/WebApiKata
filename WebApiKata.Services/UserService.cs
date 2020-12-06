@@ -6,11 +6,11 @@ using System.Net.Http;
 
 namespace WebApiKata.Services
 {
-    public class UserRepository : IUserRepository
+    public class UserService : IUserService
     {
         private readonly IConfigProvider _configProvider;
 
-        public UserRepository(IConfigProvider configProvider)
+        public UserService(IConfigProvider configProvider)
         {
             _configProvider = configProvider;
         }

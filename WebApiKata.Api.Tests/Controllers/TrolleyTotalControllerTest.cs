@@ -16,11 +16,11 @@ namespace WebApiKata.Tests.Controllers
     public class TrolleyTotalControllerTest
     {
         [Fact]
-        public async void CalculateTrolleyTotal_WhenInputIsValid_ReturnsCorrectResultFromRepository()
+        public async void CalculateTrolleyTotal_WhenInputIsValid_ReturnsCorrectResultFromService()
         {
             // Arrange
             var sutFactory = new SutTrolleyTotalControllerFactory();
-            var valueReturnedFromRepository = 12.3m;
+            var valueReturnedFromService = 12.3m;
             var trolleyInfoModel = new TrolleyInfoModel();
             var trolleyInfo = new TrolleyInfo();
 
@@ -30,7 +30,7 @@ namespace WebApiKata.Tests.Controllers
 
             sutFactory.MockTrolleyCalculator
                       .Setup(o => o.CalculateTrolley(trolleyInfo))
-                      .Returns(Task.FromResult(valueReturnedFromRepository));
+                      .Returns(Task.FromResult(valueReturnedFromService));
 
             var sutTrolleyTotalController = sutFactory.Create();
 
@@ -38,7 +38,7 @@ namespace WebApiKata.Tests.Controllers
             var result = await sutTrolleyTotalController.CalculateTrolleyTotal(trolleyInfoModel);
 
             // Assert
-            result.Should().Be(valueReturnedFromRepository);
+            result.Should().Be(valueReturnedFromService);
         }
 
         [Fact]

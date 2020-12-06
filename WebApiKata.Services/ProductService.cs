@@ -8,14 +8,14 @@ using System.Threading.Tasks;
 
 namespace WebApiKata.Services
 {
-    public class ProductRepository : IProductRepository
+    public class ProductService : IProductService
     {
         private readonly HttpClient _httpClient;
         private readonly IExternalApiPathProvider _externalApiPathProvider;
         private readonly ISerializer _serializer;
         private readonly IConfigProvider _configProvider;
 
-        public ProductRepository(IHttpClientFactory httpClientFactory,
+        public ProductService(IHttpClientFactory httpClientFactory,
                                  IExternalApiPathProvider externalApiPathProvider,
                                  IConfigProvider configProvider,
                                  ISerializer serializer)

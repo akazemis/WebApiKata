@@ -20,8 +20,8 @@ namespace WebApiKata.Api.IoC
             serviceRegistry.Register<IHttpClientFactory, WebApiKata.Services.HttpClientFactory>();
 
             // Transients
-            serviceRegistry.Register<IUserRepository, UserRepository>();
-            serviceRegistry.Register<IProductRepository, ProductRepository>();
+            serviceRegistry.Register<IUserService, UserService>();
+            serviceRegistry.Register<IProductService, ProductService>();
             serviceRegistry.Register<ITrolleyCalculator, TrolleyCalculator>();
         }
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WebApiKata.Interfaces
 {
-    public interface IUserRepository
+    public interface IUserService
     {
         Task<User> GetUser();
     }

@@ -17,15 +17,15 @@ namespace WebApiKata.Api.Controllers
     {
         private readonly ILogger<SortController> _logger;
         private readonly IMapper _mapper;
-        private readonly IProductRepository _productRepository;
+        private readonly IProductService _productService;
 
         public SortController(ILogger<SortController> logger,
                               IMapper mapper,
-                              IProductRepository productRepository)
+                              IProductService productService)
         {
             _logger = logger;
             _mapper = mapper;
-            _productRepository = productRepository;
+            _productService = productService;
         }
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace WebApiKata.Api.Controllers
             {
                 throw new BadApiRequestException($"SortOption '{sortOption}' is not supported.");
             }
-            var sortedProducts = await _productRepository.GetSortedProducts(sortType);
+            var sortedProducts = await _productService.GetSortedProducts(sortType);
             var sortedProductsModel = _mapper.Map<List<Product>, List<ProductModel>>(sortedProducts);
             return sortedProductsModel;
         }

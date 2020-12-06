@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace WebApiKata.Interfaces
 {
-    public interface IProductRepository
+    public interface IProductService
     {
         Task<List<Product>> GetSortedProducts(SortType sortType);
     }

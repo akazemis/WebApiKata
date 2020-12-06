@@ -22,7 +22,7 @@ namespace WebApiKata.Tests.Controllers
         [InlineData(SortType.Low)]
         [InlineData(SortType.High)]
         [InlineData(SortType.Recommended)]
-        public async void GetSortedShopperHistory_WhenSortOptionsIsValid_ReturnResultFromRepository(SortType sortOption)
+        public async void GetSortedShopperHistory_WhenSortOptionsIsValid_ReturnResultFromService(SortType sortOption)
         {
             // Arrange
             var sutFactory = new SutSortControllerFactory();
@@ -33,7 +33,7 @@ namespace WebApiKata.Tests.Controllers
                 .Setup(o => o.Map<List<Product>, List<ProductModel>>(productList))
                 .Returns(productModelList);
             sutFactory
-                .MockProductRepository
+                .MockProductService
                 .Setup(o => o.GetSortedProducts(sortOption))
                 .ReturnsAsync(productList);
 
@@ -84,11 +84,11 @@ namespace WebApiKata.Tests.Controllers
         {
             Mock<ILogger<SortController>> MockLogger { get; set; } = new Mock<ILogger<SortController>>();
             public Mock<IMapper> MockMapper { get; set; } = new Mock<IMapper>();
-            public Mock<IProductRepository> MockProductRepository { get; set; } = new Mock<IProductRepository>();
+            public Mock<IProductService> MockProductService { get; set; } = new Mock<IProductService>();
 
             public SortController Create()
             {
-                return new SortController(MockLogger.Object, MockMapper.Object, MockProductRepository.Object);
+                return new SortController(MockLogger.Object, MockMapper.Object, MockProductService.Object);
             }
         }
     }
