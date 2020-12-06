@@ -3,12 +3,14 @@ using DataAccess.Models;
 using System;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
 
 namespace DataAccess.ExternalApi
 {
     public class TrolleyRepository : ITrolleyRepository
     {
+        const string JsonMimeType = "application/json";
         private readonly HttpClient _httpClient;
         private readonly IExternalApiPathProvider _externalApiPathProvider;
         private readonly ISerializer _serializer;
@@ -27,8 +29,14 @@ namespace DataAccess.ExternalApi
 
         public async Task<double> CalculateTrolley(TrolleyInfo trolleyInfo)
         {
+            if (TrolleyInfoOrItsComponentsIsNull(trolleyInfo))
+            {
+                return 0;
+            }
             string fullApiUrl = GetFullApiUrl(ExternalApiPathName.CalculateTrolley);
             var requestContent = new StringContent(_serializer.Serialize(trolleyInfo));
+            SetRequestContentHeaders(requestContent);
+
             var response = await _httpClient.PostAsync(fullApiUrl, requestContent);
 
             if (!response.IsSuccessStatusCode)
@@ -39,6 +47,19 @@ namespace DataAccess.ExternalApi
 
             var result = Convert.ToDouble(responseText);
             return result;
+        }
+
+        private bool TrolleyInfoOrItsComponentsIsNull(TrolleyInfo trolleyInfo)
+        {
+            return  trolleyInfo == null ||
+                    trolleyInfo.Products == null ||
+                    trolleyInfo.Quantities == null ||
+                    trolleyInfo.Specials == null;
+        }
+
+        private static void SetRequestContentHeaders(StringContent requestContent)
+        {
+            requestContent.Headers.ContentType = new MediaTypeHeaderValue(JsonMimeType);
         }
 
         private ExternalApiCallException GetExternalApiCallException(ExternalApiPathName externalApiPathName, HttpStatusCode statusCode)

@@ -16,12 +16,7 @@ namespace DataAccess.ExternalApi.Tests
         public async void CalculateTrolley_WhenTrolleyInfoIsValid_ReturnsTotalReceivedFromTheExternalApi()
         {
             // Arrange
-            var trolleyInfo = new TrolleyInfo() 
-            {
-                Products = new List<TrolleyInfo.TrolleyProduct>(),
-                Specials = new List<TrolleyInfo.TrolleySpecial>(),
-                Quantities = new List<TrolleyInfo.TrolleyProduct>()
-            };
+            var trolleyInfo = new TrolleyInfo();
             double expectedResult = 10.2;
             var sutFactory = new SutTrolleyRepositoryFactory();
             sutFactory.SetupCalculatorTrolleyApiResult(trolleyInfo, expectedResult);
@@ -33,6 +28,55 @@ namespace DataAccess.ExternalApi.Tests
 
             // Assert
             result.Should().Be(expectedResult);
+        }
+
+        [Fact]
+        public async void CalculateTrolley_WhenTrolleyInfoIsNull_ReturnsZero()
+        {
+            // Arrange
+            var sutFactory = new SutTrolleyRepositoryFactory();
+            var sutTrolleyCalculator = sutFactory.Create();
+
+            // Act
+            var result = await sutTrolleyCalculator.CalculateTrolley(null);
+
+            // Assert
+            result.Should().Be(0);
+        }
+
+        [Theory]
+        [MemberData(nameof(GetTrolleyInfoWithNullProperty))]
+        public async void CalculateTrolley_WhenTrolleyInfoPropertyIsNull_ReturnsZero(TrolleyInfo trolleyInfo)
+        {
+            // Arrange
+            var sutFactory = new SutTrolleyRepositoryFactory();
+            var sutTrolleyCalculator = sutFactory.Create();
+
+            // Act
+            var result = await sutTrolleyCalculator.CalculateTrolley(trolleyInfo);
+
+            // Assert
+            result.Should().Be(0);
+        }
+
+        public static IEnumerable<object[]> GetTrolleyInfoWithNullProperty()
+        {
+            yield return new object[]
+            {
+                new TrolleyInfo(){ Products = null, Quantities = new List<TrolleyInfo.TrolleyProduct>(), Specials = new List<TrolleyInfo.TrolleySpecial>() }
+            };
+            yield return new object[]
+            {
+                new TrolleyInfo(){ Products = new List<TrolleyInfo.TrolleyProduct>(), Quantities = null, Specials = new List<TrolleyInfo.TrolleySpecial>() }
+            };
+            yield return new object[]
+            {
+                new TrolleyInfo(){ Products = new List<TrolleyInfo.TrolleyProduct>(), Quantities = new List<TrolleyInfo.TrolleyProduct>(), Specials = null }
+            };
+            yield return new object[]
+            {
+                new TrolleyInfo(){ Products = null, Quantities = null, Specials = null }
+            };
         }
 
         // TODO: add more tests for the edge cases
@@ -81,6 +125,7 @@ namespace DataAccess.ExternalApi.Tests
                 MockMessageHandler
                     .When(HttpMethod.Post, apiRequestUrl)
                     .WithContent(JsonConvert.SerializeObject(trolleyInfo))
+                    .WithHeaders("Content-Type", "application/json")
                     .Respond("application/json", responseHttpContent);
             }
         }
