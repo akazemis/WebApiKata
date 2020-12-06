@@ -25,7 +25,7 @@ namespace DataAccess.ExternalApi.Tests
             var user = await sutUserRepository.GetUser();
 
             // Assert
-            user.Should().BeEquivalentTo(new User() { Name = "test", Token = token });
+            user.Should().BeEquivalentTo(new User() { Name = "Arvin Kardon", Token = token });
         }
     }
 }
