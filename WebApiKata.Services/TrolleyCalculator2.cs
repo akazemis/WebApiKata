@@ -31,16 +31,16 @@ namespace WebApiKata.Services
                 throw new ArgumentException("Products, Quantities and Specials properties cannot be null.");
             }
             var productPriceMap = GetProductPriceMap(trolleyInfo);
-            var shoppedProductsMap = GetShoppedProductsMap(trolleyInfo);
+            var shoppedProductQuantitiesMap = GetShoppedProductQuantitiesMap(trolleyInfo);
 
-            var maxAmount = CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductsMap, productPriceMap);
+            var maxAmount = CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductQuantitiesMap, productPriceMap);
 
             if (maxAmount == 0)
             {
                 return 0;
             }
 
-            var applicableSpecials = GetApplicableSpecials(trolleyInfo.Specials, maxAmount, shoppedProductsMap);
+            var applicableSpecials = GetApplicableSpecials(trolleyInfo.Specials, maxAmount, shoppedProductQuantitiesMap);
 
             if (!applicableSpecials.Any())
             {
@@ -50,26 +50,26 @@ namespace WebApiKata.Services
             var minAmount = maxAmount;
             foreach (var specialList in applicableSpecials.GetPermutations(applicableSpecials.Count))
             {
-                SetMinAmountAfterApplyingSpecials(productPriceMap, shoppedProductsMap, specialList, ref minAmount);
+                SetMinAmountAfterApplyingSpecials(productPriceMap, shoppedProductQuantitiesMap, specialList, ref minAmount);
             }
             return minAmount;
         }
 
-        private void SetMinAmountAfterApplyingSpecials(Dictionary<string, decimal> productPriceMap, Dictionary<string, int> shoppedProductsMap, IEnumerable<TrolleySpecial> applicableSpecials, ref decimal currentMinAmount)
+        private void SetMinAmountAfterApplyingSpecials(Dictionary<string, decimal> productPriceMap, Dictionary<string, int> shoppedProductQuantitiesMap, IEnumerable<TrolleySpecial> applicableSpecials, ref decimal currentMinAmount)
         {
             decimal amount = 0;
 
             foreach (var special in applicableSpecials)
             {
-                Dictionary<string, int> shoppedProductsMapMinusSpecial;
-                amount += GetAmountByApplyingSpecial(special, productPriceMap, shoppedProductsMap, out shoppedProductsMapMinusSpecial);
-                shoppedProductsMap = shoppedProductsMapMinusSpecial;
+                Dictionary<string, int> shoppedProductQuantitiesMapMinusSpecial;
+                amount += GetAmountOfAppliedSpecial(special, shoppedProductQuantitiesMap, out shoppedProductQuantitiesMapMinusSpecial);
+                shoppedProductQuantitiesMap = shoppedProductQuantitiesMapMinusSpecial;
                 if (amount > currentMinAmount)  // If amount exceeds the currentMinAmount we are not interested in the rest of calculation
                 {
                     return;
                 }
             }
-            amount += CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductsMap, productPriceMap);
+            amount += CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductQuantitiesMap, productPriceMap);
             if (amount < currentMinAmount)
             {
                 currentMinAmount = amount;
@@ -77,22 +77,21 @@ namespace WebApiKata.Services
         }
 
         /// <summary>
-        /// 
+        /// Applies the special on the trolley and returns the amount of special, also spits out the remaining items after deducting the calculated items (in <see cref="shoppedProductQuantitiesMapMinusSpecial"/>)
         /// </summary>
         /// <param name="trolleySpecial"></param>
-        /// <param name="productPriceMap"></param>
-        /// <param name="shoppedProductsMap"></param>
-        /// <param name="shoppedProductsMapMinusSpecial">Shopped products quantities after deducting the specialed items</param>
+        /// <param name="shoppedProductQuantitiesMap"></param>
+        /// <param name="shoppedProductQuantitiesMapMinusSpecial">Shopped products quantities after deducting the calculated specialed items</param>
         /// <returns></returns>
-        private decimal GetAmountByApplyingSpecial(TrolleySpecial trolleySpecial, Dictionary<string, decimal> productPriceMap, Dictionary<string, int> shoppedProductsMap, out Dictionary<string, int> shoppedProductsMapMinusSpecial)
+        private decimal GetAmountOfAppliedSpecial(TrolleySpecial trolleySpecial, Dictionary<string, int> shoppedProductQuantitiesMap, out Dictionary<string, int> shoppedProductQuantitiesMapMinusSpecial)
         {
-            var shoppedProductsMapCopy = shoppedProductsMap.ToDictionary(q => q.Key, q => q.Value);
-            var maxApplicableCount = GetMaxApplicableCount(trolleySpecial, shoppedProductsMapCopy);
+            var shoppedProductQuantitiesMapCopy = shoppedProductQuantitiesMap.ToDictionary(q => q.Key, q => q.Value);
+            var maxApplicableCount = GetMaxApplicableCount(trolleySpecial, shoppedProductQuantitiesMapCopy);
 
             decimal totalAmount = 0;
             if (maxApplicableCount == 0)
             {
-                shoppedProductsMapMinusSpecial = shoppedProductsMap;
+                shoppedProductQuantitiesMapMinusSpecial = shoppedProductQuantitiesMap;
                 return 0m;
             }
 
@@ -100,17 +99,17 @@ namespace WebApiKata.Services
 
             foreach (var specialQuantity in trolleySpecial.Quantities)
             {
-                shoppedProductsMapCopy[specialQuantity.Name] -= (maxApplicableCount * specialQuantity.Quantity);
+                shoppedProductQuantitiesMapCopy[specialQuantity.Name] -= (maxApplicableCount * specialQuantity.Quantity);
             }
 
-            shoppedProductsMapMinusSpecial = shoppedProductsMapCopy;
+            shoppedProductQuantitiesMapMinusSpecial = shoppedProductQuantitiesMapCopy;
             return totalAmount;
         }
 
-        private decimal CalculateShoppedProductsAmountByQuantityAndPrice(Dictionary<string, int> shoppedProductsMap, Dictionary<string, decimal> productPriceMap)
+        private decimal CalculateShoppedProductsAmountByQuantityAndPrice(Dictionary<string, int> shoppedProductQuantitiesMap, Dictionary<string, decimal> productPriceMap)
         {
             decimal result = 0;
-            foreach (var item in shoppedProductsMap)
+            foreach (var item in shoppedProductQuantitiesMap)
             {
                 var productName = item.Key;
                 var quantity = item.Value;
@@ -123,12 +122,12 @@ namespace WebApiKata.Services
             return result;
         }
 
-        private int GetMaxApplicableCount(TrolleySpecial trolleySpecial, Dictionary<string, int> shoppedProductsMapCopy)
+        private int GetMaxApplicableCount(TrolleySpecial trolleySpecial, Dictionary<string, int> shoppedProductQuantitiesMapCopy)
         {
             var maxApplicableCount = int.MaxValue;
             foreach (var specialQuantity in trolleySpecial.Quantities)
             {
-                var count = shoppedProductsMapCopy[specialQuantity.Name] / specialQuantity.Quantity;
+                var count = shoppedProductQuantitiesMapCopy[specialQuantity.Name] / specialQuantity.Quantity;
                 maxApplicableCount = Math.Min(count, maxApplicableCount);
             }
 
@@ -142,7 +141,7 @@ namespace WebApiKata.Services
                    trolleyInfo.Specials == null;
         }
 
-        private Dictionary<string, int> GetShoppedProductsMap(TrolleyInfo trolleyInfo)
+        private Dictionary<string, int> GetShoppedProductQuantitiesMap(TrolleyInfo trolleyInfo)
         {
             var result = new Dictionary<string, int>();
             foreach (var productQuantity in trolleyInfo.Quantities)
