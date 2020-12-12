@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\DataAccess.Models\WebApiKata.Models.csproj" />
     <ProjectReference Include="..\WebApiKata.Models\WebApiKata.Models.csproj" />
   </ItemGroup>
 
