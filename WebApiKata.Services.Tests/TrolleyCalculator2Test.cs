@@ -74,6 +74,8 @@ namespace WebApiKata.Services.Tests
         public static IEnumerable<object[]> GetTrolleyInfoAndExpectedTotals()
         {
             var productA = "Product A";
+            var productB = "Product B";
+            var productC = "Product C";
             yield return new object[]
             {
                 // Input trolleyInfo
@@ -102,29 +104,29 @@ namespace WebApiKata.Services.Tests
             };
             yield return new object[]
             {
-                // Input trolleyInfo
-                new TrolleyInfo()
-                {
-                    Products = new List<TrolleyProduct>(){ new TrolleyProduct() { Name = productA, Price = 6 } },
-                    Quantities = new List<TrolleyQuantity>() { new TrolleyQuantity() { Name = productA, Quantity = 4 } },
-                    Specials = new List<TrolleySpecial>()
-                    {
-                        new TrolleySpecial()
-                        {
-                            Quantities = new List<TrolleyQuantity>()
-                            {
-                                new TrolleyQuantity()
-                                {
-                                    Name = productA,
-                                    Quantity = 5
-                                }
-                            },
-                            Total = 20
-                        }
-                    }
-                },
-                // Expected total
-                24
+                 // Input trolleyInfo
+                 new TrolleyInfo()
+                 {
+                     Products = new List<TrolleyProduct>(){ new TrolleyProduct() { Name = productA, Price = 6 } },
+                     Quantities = new List<TrolleyQuantity>() { new TrolleyQuantity() { Name = productA, Quantity = 4 } },
+                     Specials = new List<TrolleySpecial>()
+                     {
+                         new TrolleySpecial()
+                         {
+                             Quantities = new List<TrolleyQuantity>()
+                             {
+                                 new TrolleyQuantity()
+                                 {
+                                     Name = productA,
+                                     Quantity = 5
+                                 }
+                             },
+                             Total = 20
+                         }
+                     }
+                 },
+                 // Expected total
+                 24
             };
 
             yield return new object[]
@@ -152,6 +154,169 @@ namespace WebApiKata.Services.Tests
                  },
                  // Expected total
                  0.802580356024488m
+            };
+            yield return new object[]
+            {
+                // Input trolleyInfo
+                new TrolleyInfo()
+                {
+                    Products = new List<TrolleyProduct>(){
+                        new TrolleyProduct() { Name = productA, Price = 6 },
+                        new TrolleyProduct() { Name = productB, Price = 10.5m }
+                    },
+                    Quantities = new List<TrolleyQuantity>()
+                    {
+                        new TrolleyQuantity() { Name = productA, Quantity = 50 },
+                        new TrolleyQuantity() { Name = productB, Quantity = 30 }
+                    },
+                    Specials = new List<TrolleySpecial>()
+                    {
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 5
+                                },
+                                new TrolleyQuantity()
+                                {
+                                    Name = productB,
+                                    Quantity = 4
+                                }
+                            },
+                            Total = 20
+                        }
+                    }
+                },
+                // Expected total
+                251
+            };
+            yield return new object[]
+            {
+                // Input trolleyInfo
+                new TrolleyInfo()
+                {
+                    Products = new List<TrolleyProduct>(){
+                        new TrolleyProduct() { Name = productA, Price = 6 },
+                        new TrolleyProduct() { Name = productB, Price = 10.5m }
+                    },
+                    Quantities = new List<TrolleyQuantity>()
+                    {
+                        new TrolleyQuantity() { Name = productA, Quantity = 50 },
+                        new TrolleyQuantity() { Name = productB, Quantity = 30 }
+                    },
+                    Specials = new List<TrolleySpecial>()
+                    {
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 5
+                                },
+                                new TrolleyQuantity()
+                                {
+                                    Name = productB,
+                                    Quantity = 4
+                                }
+                            },
+                            Total = 20
+                        },
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 5
+                                }
+                            },
+                            Total = 10
+                        }
+                    }
+                },
+                // Expected total
+                191
+            };
+            yield return new object[]
+            {
+                // Input trolleyInfo
+                new TrolleyInfo()
+                {
+                    Products = new List<TrolleyProduct>(){
+                        new TrolleyProduct() { Name = productA, Price = 6 },
+                        new TrolleyProduct() { Name = productB, Price = 10.5m },
+                        new TrolleyProduct() { Name = productC, Price = 0.123456789m }
+                    },
+                    Quantities = new List<TrolleyQuantity>()
+                    {
+                        new TrolleyQuantity() { Name = productA, Quantity = 50 },
+                        new TrolleyQuantity() { Name = productB, Quantity = 30 },
+                        new TrolleyQuantity() { Name = productC, Quantity = 125 },
+                        new TrolleyQuantity() { Name = productC, Quantity = 30 },
+                    },
+                    Specials = new List<TrolleySpecial>()
+                    {
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 5
+                                },
+                                new TrolleyQuantity()
+                                {
+                                    Name = productB,
+                                    Quantity = 4
+                                }
+                            },
+                            Total = 30
+                        },
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 5
+                                }
+                            },
+                            Total = 15
+                        },
+                        new TrolleySpecial()
+                        {
+                            Quantities = new List<TrolleyQuantity>()
+                            {
+                                new TrolleyQuantity()
+                                {
+                                    Name = productA,
+                                    Quantity = 8
+                                },
+                                new TrolleyQuantity()
+                                {
+                                    Name = productB,
+                                    Quantity = 6
+                                },
+                                new TrolleyQuantity()
+                                {
+                                    Name = productC,
+                                    Quantity = 30
+                                }
+                            },
+                            Total = 2.2m
+                        }
+                    }
+                },
+                // Expected total
+                41.617283945m
             };
         }
     }

@@ -12,123 +12,151 @@ namespace WebApiKata.Services
     {
         public async Task<decimal> CalculateTrolley(TrolleyInfo trolleyInfo)
         {
-            return GetMinPrice(trolleyInfo);
+            return await Task.Run(() => GetMinPossibleAmount(trolleyInfo));
         }
 
-        public decimal GetMinPrice(TrolleyInfo trolleyInfo)
+        /// <summary>
+        /// Explores the trolley info to discover the minimum possible total amount
+        /// </summary>
+        /// <param name="trolleyInfo"></param>
+        /// <returns></returns>
+        public decimal GetMinPossibleAmount(TrolleyInfo trolleyInfo)
         {
             if (trolleyInfo == null)
             {
                 return 0;
             }
-            if(TrolleyInfoPropertiesAreNull(trolleyInfo))
+            if (TrolleyInfoPropertiesAreNull(trolleyInfo))
             {
                 throw new ArgumentException("Products, Quantities and Specials properties cannot be null.");
             }
+            var productPriceMap = GetProductPriceMap(trolleyInfo);
+            var shoppedProductsMap = GetShoppedProductsMap(trolleyInfo);
 
-            var maxPrice = GetMaxPrice(trolleyInfo);
+            var maxAmount = CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductsMap, productPriceMap);
 
-            if (maxPrice == 0)
+            if (maxAmount == 0)
             {
                 return 0;
             }
 
-            var applicableSpecials = GetApplicableSpecials(trolleyInfo, maxPrice);
-            var shoppedProducts = GetShoppedProducts(trolleyInfo);
-            var priceMap = GetProductPriceMap(trolleyInfo);
+            var applicableSpecials = GetApplicableSpecials(trolleyInfo.Specials, maxAmount, shoppedProductsMap);
 
-
-            if(!applicableSpecials.Any())
+            if (!applicableSpecials.Any())
             {
-                return maxPrice;
+                return maxAmount;
             }
 
-            var minPrice = maxPrice;
-            var i = 0;
-            var minPriceUpdated = false;
-            while (!minPriceUpdated)
+            var minAmount = maxAmount;
+            foreach (var specialList in applicableSpecials.GetPermutations(applicableSpecials.Count))
             {
-                minPriceUpdated = false;
-                for (var j = 0; j < applicableSpecials.Count; ++j)
+                SetMinAmountAfterApplyingSpecials(productPriceMap, shoppedProductsMap, specialList, ref minAmount);
+            }
+            return minAmount;
+        }
+
+        private void SetMinAmountAfterApplyingSpecials(Dictionary<string, decimal> productPriceMap, Dictionary<string, int> shoppedProductsMap, IEnumerable<TrolleySpecial> applicableSpecials, ref decimal currentMinAmount)
+        {
+            decimal amount = 0;
+
+            foreach (var special in applicableSpecials)
+            {
+                Dictionary<string, int> shoppedProductsMapMinusSpecial;
+                amount += GetAmountByApplyingSpecial(special, productPriceMap, shoppedProductsMap, out shoppedProductsMapMinusSpecial);
+                shoppedProductsMap = shoppedProductsMapMinusSpecial;
+                if (amount > currentMinAmount)  // If amount exceeds the currentMinAmount we are not interested in the rest of calculation
                 {
-                    GetMinPrice(priceMap, maxPrice, applicableSpecials, shoppedProducts, ref minPrice, i, ref minPriceUpdated, j);
+                    return;
                 }
+            }
+            amount += CalculateShoppedProductsAmountByQuantityAndPrice(shoppedProductsMap, productPriceMap);
+            if (amount < currentMinAmount)
+            {
+                currentMinAmount = amount;
+            }
+        }
 
-                i++;
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="trolleySpecial"></param>
+        /// <param name="productPriceMap"></param>
+        /// <param name="shoppedProductsMap"></param>
+        /// <param name="shoppedProductsMapMinusSpecial">Shopped products quantities after deducting the specialed items</param>
+        /// <returns></returns>
+        private decimal GetAmountByApplyingSpecial(TrolleySpecial trolleySpecial, Dictionary<string, decimal> productPriceMap, Dictionary<string, int> shoppedProductsMap, out Dictionary<string, int> shoppedProductsMapMinusSpecial)
+        {
+            var shoppedProductsMapCopy = shoppedProductsMap.ToDictionary(q => q.Key, q => q.Value);
+            var maxApplicableCount = GetMaxApplicableCount(trolleySpecial, shoppedProductsMapCopy);
+
+            decimal totalAmount = 0;
+            if (maxApplicableCount == 0)
+            {
+                shoppedProductsMapMinusSpecial = shoppedProductsMap;
+                return 0m;
             }
 
-            return minPrice;
+            totalAmount += maxApplicableCount * trolleySpecial.Total;
+
+            foreach (var specialQuantity in trolleySpecial.Quantities)
+            {
+                shoppedProductsMapCopy[specialQuantity.Name] -= (maxApplicableCount * specialQuantity.Quantity);
+            }
+
+            shoppedProductsMapMinusSpecial = shoppedProductsMapCopy;
+            return totalAmount;
+        }
+
+        private decimal CalculateShoppedProductsAmountByQuantityAndPrice(Dictionary<string, int> shoppedProductsMap, Dictionary<string, decimal> productPriceMap)
+        {
+            decimal result = 0;
+            foreach (var item in shoppedProductsMap)
+            {
+                var productName = item.Key;
+                var quantity = item.Value;
+                if (!productPriceMap.ContainsKey(productName))
+                {
+                    throw new ArgumentException("A Product in quantity list does not exist in the product list.");
+                }
+                result += (quantity * productPriceMap[productName]);
+            }
+            return result;
+        }
+
+        private int GetMaxApplicableCount(TrolleySpecial trolleySpecial, Dictionary<string, int> shoppedProductsMapCopy)
+        {
+            var maxApplicableCount = int.MaxValue;
+            foreach (var specialQuantity in trolleySpecial.Quantities)
+            {
+                var count = shoppedProductsMapCopy[specialQuantity.Name] / specialQuantity.Quantity;
+                maxApplicableCount = Math.Min(count, maxApplicableCount);
+            }
+
+            return maxApplicableCount;
         }
 
         private bool TrolleyInfoPropertiesAreNull(TrolleyInfo trolleyInfo)
         {
             return trolleyInfo.Products == null ||
-                    trolleyInfo.Quantities == null ||
-                    trolleyInfo.Specials == null;
+                   trolleyInfo.Quantities == null ||
+                   trolleyInfo.Specials == null;
         }
 
-        private void GetMinPrice(Dictionary<string,decimal> productPriceMap,  decimal maxPrice, List<TrolleySpecial> specials, Dictionary<string, int> shoppedProducts, ref decimal minPrice, int i, ref bool minPriceUpdated, int j)
+        private Dictionary<string, int> GetShoppedProductsMap(TrolleyInfo trolleyInfo)
         {
-            var specialCounts = new List<int>();
-            specialCounts.InitList(i, specials.Count);
-            var hasMore = true;
-            for (var k = j; hasMore; ++k)
+            var result = new Dictionary<string, int>();
+            foreach (var productQuantity in trolleyInfo.Quantities)
             {
-                int oldValue = specialCounts[j];
-                specialCounts[j] = oldValue + k;
-                if (SpecialIsApplicable(shoppedProducts, specials, specialCounts))
+                if (result.ContainsKey(productQuantity.Name))
                 {
-                    var priceForSpecials = GetPriceForSpecials(specials, specialCounts);
-                    if (maxPrice > priceForSpecials)
-                    {
-                        var priceForRest = GetPriceForNonSpecials(productPriceMap, specials, specialCounts, shoppedProducts);
-                        var price = priceForSpecials + priceForRest;
-                        if (price < minPrice)
-                        {
-                            minPrice = price;
-                            minPriceUpdated = true;
-                        }
-
-                        specialCounts[j] = oldValue;
-                    }
+                    result[productQuantity.Name] += productQuantity.Quantity;
                 }
                 else
                 {
-                    hasMore = false;
+                    result[productQuantity.Name] = productQuantity.Quantity;
                 }
             }
-        }
-
-        private bool SpecialIsApplicable(Dictionary<string, int> shoppedProducts, List<TrolleySpecial> specials, List<int> specialCounts)
-        {
-            foreach (KeyValuePair<string, int> entry in shoppedProducts)
-            {
-                shoppedProducts.TryGetValue(entry.Key, out int maxCount);
-                long count = 0;
-                int idx = 0;
-                foreach (TrolleySpecial special in specials)
-                {
-                    var product = special.Quantities.FirstOrDefault(p => p.Name == entry.Key);
-                    if (product != null)
-                    {
-                        count += specialCounts[idx] * product.Quantity;
-                    }
-
-                    idx++;
-                }
-
-                if (count > maxCount)
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        private Dictionary<string, int> GetShoppedProducts(TrolleyInfo trolleyInfo)
-        {
-            return trolleyInfo.Quantities.ToDictionary(q => q.Name, q => q.Quantity);
+            return result;
         }
 
         private Dictionary<string, decimal> GetProductPriceMap(TrolleyInfo trolleyInfo)
@@ -136,83 +164,13 @@ namespace WebApiKata.Services
             return trolleyInfo.Products.ToDictionary(q => q.Name, q => q.Price);
         }
 
-        private decimal GetPriceForNonSpecials(Dictionary<string,decimal> productPriceMap, List<TrolleySpecial> specials, List<int> specialCounts, Dictionary<string, int> shoppedProducts)
+        private List<TrolleySpecial> GetApplicableSpecials(List<TrolleySpecial> trolleySpecials, decimal maxPrice, Dictionary<string, int> shoppedProducts)
         {
-            decimal result = 0;
-            foreach (KeyValuePair<string, int> entry in shoppedProducts)
-            {
-                decimal productPrice = GetProductPrice(productPriceMap, entry.Key);
-                result += (entry.Value - GetQuantityByProduct(specials, specialCounts, entry.Key)) * productPrice;
-            }
-
+            var result = trolleySpecials
+                            .Where(s => s.Total < maxPrice &&
+                                       s.Quantities.All(q => shoppedProducts.ContainsKey(q.Name) && shoppedProducts[q.Name] >= q.Quantity))
+                            .ToList();
             return result;
-        }
-
-        private decimal GetProductPrice(Dictionary<string,decimal> productPriceMap, string productName)
-        {
-            return productPriceMap.ContainsKey(productName)
-                   ? productPriceMap[productName]
-                   : 0;
-        }
-
-        private int GetQuantityByProduct(List<TrolleySpecial> specials, List<int> specialCounts, string productName)
-        {
-            int quantity = 0;
-            int idx = 0;
-            foreach (TrolleySpecial special in specials)
-            {
-                var product = special.Quantities.FirstOrDefault(p => p.Name == productName);
-                if (product != null)
-                {
-                    quantity += product.Quantity * specialCounts[idx];
-                }
-                idx++;
-            }
-
-            return quantity;
-        }
-
-        private List<TrolleySpecial> GetApplicableSpecials(TrolleyInfo input, decimal maxPrice)
-        {
-            // The price is less than the max price when buying the individual items.
-            var result = input.Specials.Where(s => s.Total < maxPrice).ToList();
-
-            // Should not to have any products that are not in the shopping cart.
-            var shoppedProductNames = input.Quantities.Select(q => q.Name).ToList();
-            result = result.Where(s => s.Quantities.All(q => shoppedProductNames.Contains(q.Name))).ToList();
-
-            // Should not to have more products than the requested quantity.
-            var shoppedProductQuntities = input.Quantities.ToDictionary(q => q.Name, q => q.Quantity);
-            return result.Where(s => s.Quantities.All(q => { shoppedProductQuntities.TryGetValue(q.Name, out int v); return v >= q.Quantity; })).ToList();
-        }
-
-        private decimal GetPriceForSpecials(List<TrolleySpecial> specials, List<int> specialCounts)
-        {
-            decimal result = 0;
-            for (int i = 0; i < specialCounts.Count; i++)
-            {
-                result += specialCounts[i] * specials[i].Total;
-            }
-
-            return result;
-        }
-
-        private decimal GetMaxPrice(TrolleyInfo trolleyInfo)
-        {
-            decimal price = 0;
-            foreach (TrolleyQuantity quantity in trolleyInfo.Quantities)
-            {
-                foreach (TrolleyProduct product in trolleyInfo.Products)
-                {
-                    if (product.Name == quantity.Name)
-                    {
-                        price += quantity.Quantity * product.Price;
-                        break;
-                    }
-                }
-            }
-
-            return price;
         }
     }
 }
